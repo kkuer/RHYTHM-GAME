@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Overlays;
 using UnityEngine;
 
 public class Flash : MonoBehaviour
@@ -10,6 +9,8 @@ public class Flash : MonoBehaviour
     public Color transparent;
 
     public SpriteRenderer renderer;
+
+    public GameObject logo;
 
     public bool trans1 = false;
     public bool trans2;
@@ -47,6 +48,7 @@ public class Flash : MonoBehaviour
         yield return new WaitForSeconds(0.2f);
         trans1 = false;
         timePassed = 0f;
+        logo.SetActive(false);
         trans2 = true;
         yield return new WaitForSeconds(3f);
         Destroy(this.gameObject);
