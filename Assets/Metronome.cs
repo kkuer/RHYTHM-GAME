@@ -10,11 +10,16 @@ public class Metronome : MonoBehaviour
 {
     public AudioSource metronome;
 
+    public AudioSource loseSFX;
+
+    public AudioSource countdownSFX;
+
     public AudioClip metronomeSpeed1;
     public AudioClip metronomeSpeed2;
     public AudioClip metronomeSpeed3;
 
     public GameObject[] inputs;
+    public GameObject[] enemyPoses;
 
     public List<string> enemyChoices;
 
@@ -48,9 +53,28 @@ public class Metronome : MonoBehaviour
 
     public float score = 0;
 
+    public GameObject leftPose;
+    public GameObject rightPose;
+    public GameObject upPose;
+    public GameObject downPose;
+    public GameObject idlePose;
+
+    public GameObject losePose;
+
+    public GameObject enemyIdle;
+
+    public GameObject countdown3;
+    public GameObject countdown2;
+    public GameObject countdown1;
+
+    public GameObject countdownGo;
+
+    public GameObject flash;
+
     // Start is called before the first frame update
     void Start()
     {
+        idlePose.SetActive(true);
         metronome = GetComponent<AudioSource>();
         metronomeSpeed = metronomeSpeed1.length;
         StartCoroutine(gameLoop());
@@ -64,21 +88,60 @@ public class Metronome : MonoBehaviour
             if (Input.GetKey(KeyCode.LeftArrow))
             {
                 inputString = "left(Clone)";
+
+                idlePose.SetActive(false);
+
+                leftPose.SetActive(true);
+                rightPose.SetActive(false);
+                upPose.SetActive(false);
+                downPose.SetActive(false);
             }
             else if (Input.GetKey(KeyCode.UpArrow))
             {
                 inputString = "up(Clone)";
+
+                idlePose.SetActive(false);
+
+                leftPose.SetActive(false);
+                rightPose.SetActive(false);
+                upPose.SetActive(true);
+                downPose.SetActive(false);
             }
             else if (Input.GetKey(KeyCode.RightArrow))
             {
                 inputString = "right(Clone)";
+
+                idlePose.SetActive(false);
+
+                leftPose.SetActive(false);
+                rightPose.SetActive(true);
+                upPose.SetActive(false);
+                downPose.SetActive(false);
             }
             else if (Input.GetKey(KeyCode.DownArrow))
             {
                 inputString = "down(Clone)";
+
+                idlePose.SetActive(false);
+
+                leftPose.SetActive(false);
+                rightPose.SetActive(false);
+                upPose.SetActive(false);
+                downPose.SetActive(true);
             }
         }
-        scoreText.text = "Score: " + score;
+        //else if (Input.GetKeyUp(KeyCode.LeftArrow) || Input.GetKeyUp(KeyCode.UpArrow) || Input.GetKeyUp(KeyCode.RightArrow) || Input.GetKeyUp(KeyCode.DownArrow))
+        else if (!playerTurn && gameActive)
+        {
+            leftPose.SetActive(false);
+            rightPose.SetActive(false);
+            upPose.SetActive(false);
+            downPose.SetActive(false);
+
+            idlePose.SetActive(true);
+        }
+        
+        scoreText.text = score.ToString();
     }
 
     public IEnumerator makeEnemyChoices() 
@@ -90,7 +153,21 @@ public class Metronome : MonoBehaviour
             GameObject newSelection = inputs[Random.Range(0, inputs.Length)];
             GameObject newChoice = Instantiate(newSelection, enemySlotsObject.transform);
             newChoice.transform.position = slotObject.transform.position;
+            newChoice.transform.localScale = new Vector3(0.3f, 0.3f, 0.3f);
             enemyChoices.Insert(i, newChoice.name);
+
+            enemyIdle.SetActive(false);
+            foreach (GameObject pose in enemyPoses)
+            {
+                if (pose.name + "(Clone)" == newChoice.name)
+                {
+                    pose.SetActive(true);
+                }
+                else if (pose.name != newChoice.name)
+                {
+                    pose.SetActive(false);
+                }
+            }
 
             yield return new WaitForSeconds(metronomeSpeed / 4);
         }
@@ -101,17 +178,37 @@ public class Metronome : MonoBehaviour
                 Destroy(child.gameObject);
             }
         }
+        foreach (GameObject pose in enemyPoses)
+        {
+            pose.SetActive(false);
+        }
+        enemyIdle.SetActive(true);
         playerTurn = true;
     }
 
     public IEnumerator falloffTime(string enemySelection)
     {
-        yield return new WaitForSeconds(metronomeSpeed / 8);
+        yield return new WaitForSeconds(metronomeSpeed / 16);
         if (inputString != enemySelection)
         {
             Debug.Log(inputString);
             Debug.Log(enemySelection);
+
+            if (!loseSFX.isPlaying)
+            {
+                loseSFX.Play();
+            }
+
             gameActive = false;
+
+            leftPose.SetActive(false);
+            rightPose.SetActive(false);
+            upPose.SetActive(false);
+            downPose.SetActive(false);
+            idlePose.SetActive(false);
+
+            losePose.SetActive(true);
+
             metronome.Stop();
             timer = 4;
             restartButton.SetActive(true);
@@ -135,6 +232,7 @@ public class Metronome : MonoBehaviour
             }
             GameObject newChoice = Instantiate(enemyInput, playerSlotsObject.transform);
             newChoice.transform.position = slotObject.transform.position;
+            newChoice.transform.localScale = new Vector3(0.3f, 0.3f, 0.3f);
 
             StartCoroutine(falloffTime(enemySelection));
 
@@ -159,7 +257,32 @@ public class Metronome : MonoBehaviour
 
     public IEnumerator gameLoop()
     {
-        yield return new WaitForSeconds(3);
+        yield return new WaitForSeconds(0.5f);
+        countdownSFX.Play();
+        flash.SetActive(true);
+        yield return new WaitForSeconds(0.02f);
+        flash.SetActive(false);
+        countdown3.SetActive(true);
+        yield return new WaitForSeconds(1f);
+        countdown3.SetActive(false);
+        flash.SetActive(true);
+        yield return new WaitForSeconds(0.02f);
+        flash.SetActive(false);
+        countdown2.SetActive(true);
+        yield return new WaitForSeconds(1f);
+        countdown2.SetActive(false);
+        flash.SetActive(true);
+        yield return new WaitForSeconds(0.02f);
+        flash.SetActive(false);
+        countdown1.SetActive(true);
+        yield return new WaitForSeconds(1f);
+        countdown1.SetActive(false);
+        flash.SetActive(true);
+        yield return new WaitForSeconds(0.02f);
+        flash.SetActive(false);
+        countdownGo.SetActive(true);
+        yield return new WaitForSeconds(1f);
+        countdownGo.SetActive(false);
         gameActive = true;
         metronome.Play();
         while (gameActive)
